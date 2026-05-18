@@ -1,0 +1,1349 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Kuis Seni Budaya – Tari Nusantara</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f0f4ff;
+    --card: #ffffff;
+    --primary: #4361ee;
+    --primary-light: #eef0fd;
+    --accent: #f72585;
+    --success: #06d6a0;
+    --danger: #ef233c;
+    --warn: #f4a261;
+    --text: #1a1a2e;
+    --muted: #6c757d;
+    --border: #dde3f5;
+    --radius: 16px;
+    --shadow: 0 4px 24px rgba(67,97,238,.10);
+  }
+
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0 0 60px;
+  }
+
+  /* ── Header ── */
+  header {
+    background: linear-gradient(135deg, #4361ee 0%, #7209b7 100%);
+    color: #fff;
+    padding: 28px 20px 24px;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 20px rgba(67,97,238,.35);
+  }
+  header h1 { font-size: clamp(1.1rem, 4vw, 1.5rem); font-weight: 700; letter-spacing: .5px; }
+  header p  { font-size: .82rem; opacity: .85; margin-top: 4px; }
+
+  /* ── Progress bar ── */
+  #prog-wrap {
+    background: rgba(255,255,255,.25);
+    border-radius: 99px;
+    height: 8px;
+    margin: 14px auto 0;
+    max-width: 360px;
+    overflow: hidden;
+  }
+  #prog-bar {
+    height: 100%;
+    background: #f72585;
+    border-radius: 99px;
+    transition: width .4s ease;
+    width: 0%;
+  }
+
+  /* ── Score strip ── */
+  #score-strip {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    padding: 12px 16px;
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    font-size: .82rem;
+    font-weight: 600;
+    position: sticky;
+    top: 120px;
+    z-index: 99;
+    flex-wrap: wrap;
+  }
+  .sstat { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot-b { background: var(--success); }
+  .dot-s { background: var(--danger); }
+  .dot-t { background: var(--primary); }
+
+  /* ── Container ── */
+  main { max-width: 780px; margin: 0 auto; padding: 24px 16px; }
+
+  /* ── Question card ── */
+  .q-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 22px 20px 18px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+    border: 1.5px solid var(--border);
+    transition: border-color .3s;
+  }
+  .q-card.answered-correct { border-color: var(--success); }
+  .q-card.answered-wrong   { border-color: var(--danger);  }
+
+  .q-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .q-num {
+    font-size: .72rem;
+    font-weight: 700;
+    background: var(--primary-light);
+    color: var(--primary);
+    padding: 3px 10px;
+    border-radius: 99px;
+  }
+  .q-badge {
+    font-size: .68rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 99px;
+  }
+  .badge-correct { background: #d4f7ee; color: #068a66; }
+  .badge-wrong   { background: #fde8ec; color: #c41030; }
+
+  .q-text {
+    font-size: clamp(.88rem, 2.2vw, .97rem);
+    font-weight: 500;
+    line-height: 1.65;
+    margin-bottom: 14px;
+  }
+
+  /* ── Options ── */
+  .options { display: flex; flex-direction: column; gap: 9px; }
+
+  .opt {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 11px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background .2s, border-color .2s, transform .1s;
+    font-size: .88rem;
+    line-height: 1.55;
+    background: #fff;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  .opt:hover:not(.disabled) { background: var(--primary-light); border-color: var(--primary); }
+  .opt:active:not(.disabled) { transform: scale(.985); }
+  .opt.disabled { cursor: default; pointer-events: none; }
+  .opt.correct  { background: #d4f7ee; border-color: var(--success); }
+  .opt.wrong    { background: #fde8ec; border-color: var(--danger);  }
+  .opt.neutral  { opacity: .55; }
+
+  .opt-letter {
+    flex-shrink: 0;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--primary-light);
+    color: var(--primary);
+    font-weight: 700;
+    font-size: .78rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px;
+  }
+  .opt.correct .opt-letter { background: var(--success); color: #fff; }
+  .opt.wrong   .opt-letter { background: var(--danger);  color: #fff; }
+
+  /* ── Explanation ── */
+  .explanation {
+    margin-top: 14px;
+    border-radius: 12px;
+    overflow: hidden;
+    display: none;
+  }
+  .exp-header {
+    font-size: .78rem;
+    font-weight: 700;
+    padding: 8px 14px;
+    letter-spacing: .3px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .exp-correct-h { background: #b7f0de; color: #056a4f; }
+  .exp-wrong-h   { background: #f9ccd4; color: #9b0e25; }
+  .exp-body {
+    background: #f8f9ff;
+    padding: 10px 14px 12px;
+    font-size: .83rem;
+    line-height: 1.65;
+    color: #2d3561;
+    border: 1px solid #e4e8f8;
+    border-top: 0;
+    border-radius: 0 0 12px 12px;
+  }
+  .exp-body strong { color: var(--primary); }
+  .exp-options { margin-top: 8px; }
+  .exp-opt {
+    margin-top: 5px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: .8rem;
+    line-height: 1.5;
+  }
+  .exp-opt-correct { background: #d4f7ee; }
+  .exp-opt-wrong   { background: #ffe8ec; }
+
+  /* ── Result panel ── */
+  #result-panel {
+    display: none;
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 30px 24px;
+    text-align: center;
+    box-shadow: var(--shadow);
+    border: 1.5px solid var(--border);
+    margin-bottom: 30px;
+  }
+  #result-panel h2 { font-size: 1.4rem; color: var(--primary); margin-bottom: 8px; }
+  #result-panel .big-score { font-size: 3rem; font-weight: 700; margin: 12px 0; }
+  .grade-A { color: var(--success); }
+  .grade-B { color: var(--primary); }
+  .grade-C { color: var(--warn); }
+  .grade-D { color: var(--danger); }
+  #result-panel p { font-size: .9rem; color: var(--muted); line-height: 1.7; }
+  #retry-btn {
+    margin-top: 18px;
+    background: linear-gradient(135deg, #4361ee, #7209b7);
+    color: #fff;
+    border: none;
+    padding: 13px 32px;
+    border-radius: 99px;
+    font-family: 'Poppins', sans-serif;
+    font-size: .92rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity .2s, transform .1s;
+    box-shadow: 0 4px 14px rgba(67,97,238,.35);
+  }
+  #retry-btn:hover  { opacity: .9; }
+  #retry-btn:active { transform: scale(.97); }
+
+  /* ── Floating submit ── */
+  #submit-wrap {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(255,255,255,.95);
+    backdrop-filter: blur(8px);
+    padding: 12px 20px;
+    box-shadow: 0 -4px 20px rgba(0,0,0,.08);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    z-index: 200;
+  }
+  #answered-count { font-size: .82rem; color: var(--muted); font-weight: 500; }
+  #submit-btn {
+    background: linear-gradient(135deg, #f72585, #b5179e);
+    color: #fff;
+    border: none;
+    padding: 12px 26px;
+    border-radius: 99px;
+    font-family: 'Poppins', sans-serif;
+    font-size: .9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity .2s, transform .1s;
+    box-shadow: 0 4px 14px rgba(247,37,133,.35);
+    white-space: nowrap;
+  }
+  #submit-btn:hover  { opacity: .9; }
+  #submit-btn:active { transform: scale(.97); }
+  #submit-btn:disabled { opacity: .45; cursor: not-allowed; }
+
+  /* ── Scroll to top ── */
+  #top-btn {
+    display: none;
+    position: fixed;
+    bottom: 72px;
+    right: 18px;
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(67,97,238,.4);
+    z-index: 201;
+    transition: opacity .3s;
+    align-items: center;
+    justify-content: center;
+  }
+  #top-btn.show { display: flex; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🎭 Kuis Seni Budaya – Tari Nusantara</h1>
+  <p>Kurikulum Merdeka · 50 Soal Pilihan Ganda · SMA</p>
+  <div id="prog-wrap"><div id="prog-bar"></div></div>
+</header>
+
+<div id="score-strip">
+  <div class="sstat"><div class="dot dot-b"></div><span id="cnt-benar">Benar: 0</span></div>
+  <div class="sstat"><div class="dot dot-s"></div><span id="cnt-salah">Salah: 0</span></div>
+  <div class="sstat"><div class="dot dot-t"></div><span id="cnt-total">Dijawab: 0/50</span></div>
+</div>
+
+<main id="quiz-main">
+  <div id="result-panel">
+    <h2>🎉 Hasil Kuis Kamu</h2>
+    <div id="big-score" class="big-score"></div>
+    <div id="grade-label" style="font-weight:700;font-size:1.1rem;margin-bottom:8px;"></div>
+    <p id="result-desc"></p>
+    <button id="retry-btn" onclick="retryQuiz()">🔄 Ulangi Kuis</button>
+  </div>
+  <div id="questions-container"></div>
+</main>
+
+<div id="submit-wrap">
+  <span id="answered-count">0 dari 50 soal dijawab</span>
+  <button id="submit-btn" onclick="submitQuiz()">Kumpulkan Jawaban ✓</button>
+</div>
+
+<button id="top-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<script>
+const questions = [
+  // ─── 1-8: MAKNA DAN SIMBOL TARI ───
+  {
+    q: "Dalam seni tari, simbol gerak yang melambangkan keanggunan dan kehalusan budi pekerti sering ditampilkan melalui…",
+    opts: [
+      "Gerakan kaki yang menghentak kuat ke lantai",
+      "Gerakan tangan yang lembut dan teratur seperti ombak",
+      "Lompatan tinggi yang energik dan dinamis",
+      "Putaran badan yang cepat tanpa henti"
+    ],
+    ans: 1,
+    exp: [
+      "Gerakan menghentak kuat melambangkan kekuatan atau semangat, bukan keanggunan.",
+      "BENAR. Gerak tangan lembut dan mengalir seperti ombak adalah simbol keanggunan dan kehalusan budi pekerti, misalnya pada tari Bedhaya Ketawang.",
+      "Lompatan energik lebih mencerminkan keberanian atau semangat perang.",
+      "Putaran cepat biasanya melambangkan kegembiraan atau keriangan yang meluap."
+    ]
+  },
+  {
+    q: "Tari Pendet dari Bali memiliki makna utama sebagai…",
+    opts: [
+      "Tari hiburan untuk wisatawan asing",
+      "Tari persembahan dan penyambutan yang bersifat sakral",
+      "Tari perang untuk menolak musuh",
+      "Tari pergaulan muda-mudi di pesta rakyat"
+    ],
+    ans: 1,
+    exp: [
+      "Tari Pendet memang dipentaskan untuk wisatawan, namun itu bukan makna utama aslinya.",
+      "BENAR. Tari Pendet awalnya adalah tari sakral sebagai persembahan kepada para dewa di pura, kemudian berkembang menjadi tari penyambutan tamu.",
+      "Tari perang Bali lebih dikenal dengan tari Kecak dalam aspek tertentu atau tari Baris.",
+      "Tari pergaulan muda-mudi lebih dikenal sebagai jenis tari sosial, bukan Pendet."
+    ]
+  },
+  {
+    q: "Dalam tari tradisional Jawa, gerakan mata (pandangan) yang disebut 'lirikan' berfungsi sebagai…",
+    opts: [
+      "Hiasan estetis tanpa makna tertentu",
+      "Simbol komunikasi batin dan ekspresi emosi tokoh",
+      "Tanda bahwa penari kelelahan",
+      "Cara penari melihat properti tari"
+    ],
+    ans: 1,
+    exp: [
+      "Setiap gerak dalam tari Jawa memiliki makna, tidak ada gerak tanpa arti.",
+      "BENAR. Lirikan mata dalam tari Jawa adalah bagian dari wirasa (ekspresi jiwa), menyampaikan emosi, karakter tokoh, dan komunikasi non-verbal kepada penonton.",
+      "Penari terlatih tidak menunjukkan kelelahan melalui gerak tari.",
+      "Penari sudah hafal posisi properti tanpa harus melihatnya saat pentas."
+    ]
+  },
+  {
+    q: "Penggunaan warna kostum merah pada tari tradisional Indonesia umumnya melambangkan…",
+    opts: [
+      "Kesedihan dan duka cita mendalam",
+      "Keberanian, semangat, dan kekuatan",
+      "Kesucian dan kemurnian hati",
+      "Kebijaksanaan dan ketenangan batin"
+    ],
+    ans: 1,
+    exp: [
+      "Warna yang melambangkan kesedihan umumnya adalah hitam atau abu-abu.",
+      "BENAR. Merah dalam simbolisme tari tradisional Indonesia melambangkan keberanian, semangat juang, dan kekuatan, sering digunakan pada tokoh ksatria.",
+      "Kesucian biasanya dilambangkan dengan warna putih.",
+      "Kebijaksanaan biasanya dilambangkan dengan warna emas atau kuning."
+    ]
+  },
+  {
+    q: "Tari Barong dari Bali secara simbolis menggambarkan pertarungan antara…",
+    opts: [
+      "Dua kerajaan yang berperang memperebutkan wilayah",
+      "Kekuatan baik (dharma) melawan kekuatan jahat (adharma)",
+      "Manusia dengan alam semesta",
+      "Dua generasi yang berbeda pandangan"
+    ],
+    ans: 1,
+    exp: [
+      "Tari Barong bukan tari tentang perang antar kerajaan.",
+      "BENAR. Tari Barong adalah representasi pertarungan abadi antara Barong (kekuatan baik/dharma) dan Rangda (kekuatan jahat/adharma), cerminan filosofi Hindu tentang keseimbangan alam.",
+      "Hubungan manusia dengan alam bukan tema utama Tari Barong.",
+      "Konflik generasi bukan tema seni tari tradisional Bali ini."
+    ]
+  },
+  {
+    q: "Properti tari berupa 'kipas' dalam tari-tari Nusantara umumnya berfungsi sebagai simbol…",
+    opts: [
+      "Kekuatan fisik dan kejantanan",
+      "Keanggunan, kewibawaan, dan kehalusan gerak",
+      "Kegelisahan dan ketakutan tokoh",
+      "Kemiskinan dan kesederhanaan hidup"
+    ],
+    ans: 1,
+    exp: [
+      "Kekuatan dan kejantanan lebih disimbolkan oleh properti seperti keris atau tombak.",
+      "BENAR. Kipas dalam tari Nusantara, seperti Tari Kipas dari Sulawesi Selatan, melambangkan keanggunan, kewibawaan, dan memperindah gerak sehingga tampak lebih halus dan berwibawa.",
+      "Kegelisahan bukan makna utama properti kipas dalam tari tradisional.",
+      "Kipas justru sering identik dengan kemewahan dan kebangsawanan."
+    ]
+  },
+  {
+    q: "Makna filosofis dari gerakan 'sembah' di awal dan akhir pertunjukan tari tradisional adalah…",
+    opts: [
+      "Menunjukkan bahwa penari sudah siap dan selesai",
+      "Ekspresi rasa syukur, hormat kepada Tuhan, sesama, dan penonton",
+      "Tanda bahwa kostum sudah terpasang dengan benar",
+      "Kode antara penari dan pengiring musik"
+    ],
+    ans: 1,
+    exp: [
+      "Sembah bukan sekadar sinyal teknis pertunjukan.",
+      "BENAR. Gerakan sembah memiliki makna spiritual dan sosial yang dalam, yaitu ungkapan syukur kepada Sang Pencipta, penghormatan kepada leluhur, dan apresiasi kepada penonton.",
+      "Kesiapan kostum bukan bagian dari makna gerak sembah.",
+      "Komunikasi dengan pengiring musik dilakukan melalui cara lain, bukan gerakan sembah."
+    ]
+  },
+  {
+    q: "Dalam tari tradisional, penggunaan 'topeng' sebagai properti terutama berfungsi sebagai simbol…",
+    opts: [
+      "Menyembunyikan identitas penari karena malu",
+      "Perwakilan karakter, watak, atau tokoh tertentu dalam cerita",
+      "Pelindung wajah penari dari debu panggung",
+      "Hiasan semata agar penampilan lebih menarik"
+    ],
+    ans: 1,
+    exp: [
+      "Penari profesional tidak menyembunyikan identitas karena malu.",
+      "BENAR. Topeng adalah simbol karakter dan watak tokoh. Warna, bentuk, dan ekspresi topeng mewakili sifat tokoh seperti gagah, bijaksana, jahat, atau lucu.",
+      "Fungsi perlindungan bukan tujuan utama topeng dalam seni tari.",
+      "Setiap elemen tari memiliki makna, topeng bukan sekadar hiasan."
+    ]
+  },
+
+  // ─── 9-16: FUNGSI TARI ───
+  {
+    q: "Tari Bedoyo Ketawang di Keraton Yogyakarta dan Surakarta merupakan contoh tari yang berfungsi sebagai…",
+    opts: [
+      "Tari pergaulan untuk hiburan masyarakat umum",
+      "Tari ritual dan upacara adat kerajaan yang sakral",
+      "Tari pertunjukan untuk festival internasional",
+      "Tari pendidikan untuk para pelajar"
+    ],
+    ans: 1,
+    exp: [
+      "Tari Bedoyo bukan untuk pergaulan umum, sangat eksklusif.",
+      "BENAR. Bedhaya Ketawang adalah tari sakral yang hanya dipentaskan pada hari-hari tertentu di Keraton, berfungsi sebagai ritual penguatan legitimasi raja dan komunikasi dengan dunia spiritual.",
+      "Tari ini tidak dipentaskan untuk festival komersial umum.",
+      "Meski mengandung nilai pendidikan, fungsi utamanya adalah ritual."
+    ]
+  },
+  {
+    q: "Fungsi tari sebagai media komunikasi sosial paling tepat terlihat pada…",
+    opts: [
+      "Penari solo yang berlatih sendiri di studio",
+      "Tari pergaulan seperti Tari Poco-Poco yang dimainkan bersama",
+      "Pertunjukan tari tunggal di panggung resmi",
+      "Video tari yang diunggah ke media sosial"
+    ],
+    ans: 1,
+    exp: [
+      "Latihan solo tidak secara langsung berfungsi sebagai komunikasi sosial.",
+      "BENAR. Tari pergaulan seperti Poco-Poco, Saman, atau Tor-Tor pada pesta adat berfungsi sebagai medium interaksi dan komunikasi sosial antar individu dalam kelompok masyarakat.",
+      "Pertunjukan solo lebih ke ekspresi seni individual.",
+      "Media sosial merupakan medium distribusi, bukan fungsi tari itu sendiri."
+    ]
+  },
+  {
+    q: "Di beberapa daerah, tari digunakan sebagai media untuk menyembuhkan penyakit dan mengusir roh jahat. Fungsi tari ini disebut…",
+    opts: [
+      "Fungsi estetis",
+      "Fungsi magis dan ritual",
+      "Fungsi hiburan sosial",
+      "Fungsi pendidikan karakter"
+    ],
+    ans: 1,
+    exp: [
+      "Fungsi estetis berkaitan dengan keindahan, bukan penyembuhan.",
+      "BENAR. Fungsi magis dan ritual adalah penggunaan tari sebagai sarana berhubungan dengan kekuatan supranatural, termasuk untuk penyembuhan (seperti tari Debus di Banten) atau mengusir roh.",
+      "Fungsi hiburan sosial tidak berkaitan dengan penyembuhan magis.",
+      "Pendidikan karakter tidak termasuk dalam konteks ritual penyembuhan."
+    ]
+  },
+  {
+    q: "Fungsi tari yang berkaitan dengan menceritakan kisah atau legenda daerah disebut fungsi…",
+    opts: [
+      "Rekreasi",
+      "Dramatari atau narasi",
+      "Meditasi",
+      "Olahraga"
+    ],
+    ans: 1,
+    exp: [
+      "Rekreasi berarti hiburan ringan tanpa unsur cerita khusus.",
+      "BENAR. Fungsi dramatari/narasi adalah menceritakan kisah, legenda, atau epik melalui gerak tari, contohnya Sendratari Ramayana, Tari Kecak yang mengisahkan Ramayana, atau Tari Topeng Cirebon.",
+      "Meditasi bukan fungsi tari dalam konteks bercerita.",
+      "Olahraga adalah fungsi fisik, bukan narasi."
+    ]
+  },
+  {
+    q: "Tari Saman dari Aceh selain berfungsi sebagai seni pertunjukan, juga berfungsi sebagai media…",
+    opts: [
+      "Kompetisi fisik antar daerah",
+      "Dakwah dan penyebaran nilai-nilai agama Islam",
+      "Latihan militer bagi pemuda Aceh",
+      "Terapi psikologis bagi masyarakat"
+    ],
+    ans: 1,
+    exp: [
+      "Tari Saman bukan kompetisi fisik.",
+      "BENAR. Tari Saman diciptakan oleh Syekh Saman sebagai media dakwah Islam, menyisipkan syair-syair pujian kepada Allah dan nasihat moral dalam setiap penampilannya.",
+      "Meski membutuhkan kekompakan fisik, bukan fungsi militer.",
+      "Terapi psikologis bukan fungsi utama yang disematkan pada Tari Saman."
+    ]
+  },
+  {
+    q: "Manakah pernyataan yang paling tepat mengenai fungsi tari dalam kehidupan masyarakat modern?",
+    opts: [
+      "Tari sudah tidak memiliki fungsi ritual karena modernisasi",
+      "Tari hanya berfungsi sebagai tontonan di televisi",
+      "Tari tetap memiliki fungsi ganda: ritual, sosial, dan hiburan",
+      "Fungsi tari semata-mata untuk menghasilkan uang"
+    ],
+    ans: 2,
+    exp: [
+      "Banyak komunitas adat masih mempertahankan fungsi ritual tari.",
+      "Tari memiliki jauh lebih banyak fungsi daripada sekadar tontonan televisi.",
+      "BENAR. Tari dalam masyarakat modern tetap memiliki fungsi yang beragam dan berlapis: ritual (upacara adat, pernikahan), sosial (pergaulan, identitas budaya), dan hiburan (festival, pertunjukan).",
+      "Aspek komersial hanyalah salah satu dari banyak fungsi tari."
+    ]
+  },
+  {
+    q: "Tari Perang dari Papua berfungsi utama sebagai…",
+    opts: [
+      "Hiburan wisatawan mancanegara",
+      "Persiapan dan pembangkitan semangat sebelum berperang serta rituil syukur",
+      "Tari pergaulan muda-mudi Papua",
+      "Pertunjukan sirkus untuk menghibur raja"
+    ],
+    ans: 1,
+    exp: [
+      "Pariwisata bukan fungsi utama asli tari ini.",
+      "BENAR. Tari perang Papua memiliki fungsi ritual untuk membangkitkan keberanian, memohon perlindungan leluhur sebelum berperang, dan mengekspresikan semangat juang komunitas.",
+      "Tari perang bukan tari pergaulan sosial.",
+      "Kerajaan dan sirkus bukan konteks budaya Papua tradisional."
+    ]
+  },
+  {
+    q: "Pembagian fungsi tari menurut Soedarsono dibagi menjadi tiga, yaitu…",
+    opts: [
+      "Tari hiburan, tari pendidikan, dan tari olahraga",
+      "Tari upacara, tari pergaulan, dan tari pertunjukan",
+      "Tari sakral, tari profan, dan tari modern",
+      "Tari tunggal, tari berpasangan, dan tari kelompok"
+    ],
+    ans: 1,
+    exp: [
+      "Pendidikan dan olahraga bukan kategori utama fungsi tari menurut Soedarsono.",
+      "BENAR. Soedarsono, ahli tari Indonesia, membagi fungsi tari menjadi: (1) tari upacara/ritual, (2) tari hiburan/pergaulan sosial, dan (3) tari pertunjukan seni.",
+      "Sakral-profan adalah klasifikasi berbeda dari fungsi.",
+      "Tunggal-berpasangan-kelompok adalah pembagian berdasarkan jumlah penari, bukan fungsi."
+    ]
+  },
+
+  // ─── 17-25: UNSUR TARI ───
+  {
+    q: "Unsur utama tari yang berkaitan dengan kemampuan penari merasakan dan menghayati jiwa tariannya disebut…",
+    opts: [
+      "Wiraga",
+      "Wirama",
+      "Wirasa",
+      "Wirupa"
+    ],
+    ans: 2,
+    exp: [
+      "Wiraga adalah unsur yang berkaitan dengan kemampuan teknis gerak fisik penari.",
+      "Wirama adalah unsur yang berkaitan dengan ketepatan irama dan ritme dalam menari.",
+      "BENAR. Wirasa adalah unsur rasa atau ekspresi jiwa dalam tari. Penari yang baik tidak hanya bergerak dengan benar (wiraga) dan tepat irama (wirama), tetapi juga mampu menghayati dan mengekspresikan jiwa tarian (wirasa).",
+      "Wirupa berkaitan dengan penampilan visual atau rupa penari, bukan penghayatan batin."
+    ]
+  },
+  {
+    q: "Dalam konsep tari, 'ruang' sebagai unsur tari mencakup…",
+    opts: [
+      "Hanya panggung fisik tempat menari",
+      "Ruang nyata (tempat) dan ruang imajiner yang diciptakan oleh gerak penari",
+      "Dekorasi panggung dan tata cahaya",
+      "Jarak antara penari satu dengan penari lain"
+    ],
+    ans: 1,
+    exp: [
+      "Ruang dalam tari tidak terbatas pada panggung fisik saja.",
+      "BENAR. Ruang dalam tari meliputi ruang nyata (stage, area pertunjukan) dan ruang imajiner yaitu ruang yang tercipta dari arah, level, dan jangkauan gerak penari itu sendiri.",
+      "Dekorasi dan tata cahaya adalah elemen pendukung, bukan unsur ruang tari.",
+      "Jarak antar penari adalah bagian dari ruang, namun definisi ini terlalu sempit."
+    ]
+  },
+  {
+    q: "Konsep 'level' dalam unsur ruang tari mengacu pada…",
+    opts: [
+      "Kemampuan teknis penari dari pemula hingga ahli",
+      "Ketinggian posisi gerak penari (rendah, sedang, tinggi)",
+      "Tingkatan umur penari dalam kelompok",
+      "Pangkat atau kedudukan penari dalam masyarakat"
+    ],
+    ans: 1,
+    exp: [
+      "Level kemampuan penari adalah istilah berbeda dari level dalam unsur ruang.",
+      "BENAR. Level dalam unsur ruang tari merujuk pada ketinggian posisi gerak: level rendah (jongkok, merangkak), level sedang (berdiri biasa), dan level tinggi (berjinjit, melompat). Variasi level menciptakan komposisi yang dinamis.",
+      "Usia penari tidak disebut 'level' dalam konteks unsur tari.",
+      "Kedudukan sosial tidak ada hubungannya dengan unsur ruang tari."
+    ]
+  },
+  {
+    q: "Unsur waktu dalam tari berhubungan dengan…",
+    opts: [
+      "Lamanya pertunjukan tari berlangsung",
+      "Tempo, ritme, dan durasi gerak dalam tari",
+      "Jadwal latihan penari",
+      "Waktu sejarah kapan tari tersebut diciptakan"
+    ],
+    ans: 1,
+    exp: [
+      "Durasi pertunjukan adalah aspek produksi, bukan unsur waktu dalam gerak tari.",
+      "BENAR. Unsur waktu dalam tari berkaitan dengan tempo (cepat-lambat gerak), ritme (pola gerak berulang), dan durasi (berapa lama suatu gerak dilakukan). Ketiga hal ini membentuk dinamika tari.",
+      "Jadwal latihan adalah hal administrasi, bukan unsur tari.",
+      "Sejarah penciptaan tidak termasuk unsur dasar tari."
+    ]
+  },
+  {
+    q: "Gerak yang dilakukan penari namun tidak memiliki arti khusus, semata-mata untuk keindahan, disebut…",
+    opts: [
+      "Gerak maknawi",
+      "Gerak murni (pure movement)",
+      "Gerak imitatif",
+      "Gerak represif"
+    ],
+    ans: 1,
+    exp: [
+      "Gerak maknawi justru memiliki arti atau makna tertentu.",
+      "BENAR. Gerak murni (pure movement) adalah gerak yang dilakukan semata-mata untuk kepentingan estetika atau keindahan visual, tanpa mengandung makna khusus di luar keindahan itu sendiri.",
+      "Gerak imitatif adalah gerak yang meniru gerak alam atau binatang.",
+      "Gerak represif bukan istilah baku dalam unsur tari."
+    ]
+  },
+  {
+    q: "Dalam unsur tari, 'tenaga' berperan untuk…",
+    opts: [
+      "Menentukan berapa lama penari bisa tampil",
+      "Memberikan kualitas, dinamika, dan intensitas pada gerak tari",
+      "Menghasilkan suara dari hentakan kaki",
+      "Mengatur pernapasan penari"
+    ],
+    ans: 1,
+    exp: [
+      "Stamina penari memang berkaitan dengan tenaga, tapi bukan fungsi 'tenaga' sebagai unsur tari.",
+      "BENAR. Tenaga dalam tari menentukan kuat-lemah, tegang-kendur, dan berat-ringan gerak. Variasi tenaga menciptakan dinamika dan kualitas gerak yang berbeda-beda sehingga tari tidak monoton.",
+      "Suara hentakan kaki adalah efek samping, bukan fungsi utama unsur tenaga.",
+      "Pernapasan adalah teknik fisik penari, bukan unsur tari."
+    ]
+  },
+  {
+    q: "Unsur pendukung tari yang berupa pakaian atau busana yang dikenakan penari disebut…",
+    opts: [
+      "Properti tari",
+      "Iringan tari",
+      "Kostum tari",
+      "Tata rias tari"
+    ],
+    ans: 2,
+    exp: [
+      "Properti tari adalah benda-benda yang dibawa atau dimainkan penari (kipas, keris, dll).",
+      "Iringan tari adalah musik pengiring tari.",
+      "BENAR. Kostum tari adalah keseluruhan pakaian dan busana yang dikenakan penari. Kostum mencerminkan identitas budaya, karakter tokoh, dan memperindah penampilan visual tari.",
+      "Tata rias adalah riasan wajah penari, berbeda dari kostum/busana."
+    ]
+  },
+  {
+    q: "Manakah yang BUKAN merupakan unsur utama dalam tari?",
+    opts: [
+      "Gerak",
+      "Iringan musik",
+      "Ruang",
+      "Tenaga"
+    ],
+    ans: 1,
+    exp: [
+      "Gerak adalah unsur paling fundamental dan utama dalam tari.",
+      "BENAR. Iringan musik adalah unsur PENDUKUNG tari, bukan unsur utama. Unsur utama tari adalah gerak, ruang, waktu, dan tenaga. Tari bisa eksis tanpa musik (tari a cappella), tetapi tidak bisa tanpa gerak.",
+      "Ruang adalah unsur utama tari.",
+      "Tenaga adalah unsur utama tari."
+    ]
+  },
+  {
+    q: "Gerak 'imajinatif' dalam tari adalah gerak yang…",
+    opts: [
+      "Dilakukan tanpa berpikir terlebih dahulu",
+      "Terinspirasi dari pengamatan alam, hewan, atau aktivitas manusia kemudian distilisasi",
+      "Hanya ada dalam imajinasi koreografer",
+      "Tidak pernah dipraktikkan di atas panggung"
+    ],
+    ans: 1,
+    exp: [
+      "Gerak tari selalu dikerjakan secara sadar dan terencana.",
+      "BENAR. Gerak imajinatif (atau imitatif yang telah distilisasi) adalah gerak yang berasal dari pengamatan terhadap alam, perilaku hewan, atau aktivitas manusia, kemudian diolah secara artistik menjadi gerak tari yang indah.",
+      "Gerak imajinatif harus bisa diwujudkan secara fisik, bukan hanya ada di pikiran.",
+      "Semua gerak tari dipraktikkan pada saat pertunjukan."
+    ]
+  },
+
+  // ─── 26-34: TARI TRADISI NUSANTARA ───
+  {
+    q: "Tari Jaipong merupakan tarian yang berasal dari daerah…",
+    opts: [
+      "Jawa Tengah",
+      "Jawa Timur",
+      "Jawa Barat (Sunda)",
+      "DKI Jakarta (Betawi)"
+    ],
+    ans: 2,
+    exp: [
+      "Tari Jawa Tengah yang terkenal antara lain Golek, Gambyong, dan Serimpi.",
+      "Tari Jawa Timur yang terkenal antara lain Remo, Gandrung, dan Reog.",
+      "BENAR. Tari Jaipong diciptakan oleh Gugum Gumbira dari Jawa Barat pada tahun 1960-an, menggabungkan unsur tari Ketuk Tilu, Ronggeng, dan Pencak Silat Sunda.",
+      "Tari Betawi yang terkenal antara lain Yapong, Cokek, dan Topeng Betawi."
+    ]
+  },
+  {
+    q: "Tari Kecak dari Bali unik karena…",
+    opts: [
+      "Menggunakan gamelan yang sangat besar dan lengkap",
+      "Diiringi oleh suara vokal ratusan penari laki-laki sebagai orkestra manusia",
+      "Hanya dapat ditarikan oleh perempuan dewasa",
+      "Dilakukan di bawah air sebagai ritual laut"
+    ],
+    ans: 1,
+    exp: [
+      "Tari Kecak justru terkenal karena tidak menggunakan instrumen gamelan konvensional.",
+      "BENAR. Keunikan Tari Kecak adalah iringannya berupa suara vokal 'cak-cak-cak' oleh puluhan hingga ratusan penari laki-laki yang membentuk lingkaran, menciptakan polifoni vokal yang unik sebagai ganti gamelan.",
+      "Tari Kecak ditarikan oleh laki-laki, bukan perempuan.",
+      "Tari Kecak tidak dilakukan di bawah air."
+    ]
+  },
+  {
+    q: "Tari Tor-Tor merupakan tari tradisi dari suku…",
+    opts: [
+      "Dayak, Kalimantan",
+      "Asmat, Papua",
+      "Batak, Sumatera Utara",
+      "Bugis, Sulawesi Selatan"
+    ],
+    ans: 2,
+    exp: [
+      "Tari Dayak yang terkenal antara lain Tari Hudoq dan Kancet Ledo.",
+      "Tari Papua yang terkenal antara lain Tari Musyoh dan Tari War.",
+      "BENAR. Tari Tor-Tor adalah tari sakral dan adat suku Batak (Toba) dari Sumatera Utara, diiringi gondang (ensambel musik Batak) dan memiliki makna spiritual yang dalam.",
+      "Tari Bugis yang terkenal antara lain Tari Pakarena dan Bosara."
+    ]
+  },
+  {
+    q: "Ciri khas gerakan tari klasik Jawa adalah…",
+    opts: [
+      "Gerakan yang lincah, cepat, dan penuh akrobatik",
+      "Gerakan yang halus, terkontrol, lambat, dan penuh makna simbolis",
+      "Gerakan yang bebas mengikuti irama musik pop",
+      "Gerakan yang meniru binatang buas secara realistis"
+    ],
+    ans: 1,
+    exp: [
+      "Gerakan akrobatik lebih identik dengan tari kontemporer atau tari modern.",
+      "BENAR. Tari klasik Jawa seperti Golek, Gambyong, atau Bedhaya ditandai dengan gerak yang halus, pelan, penuh penghayatan, dan setiap detil gerak memiliki makna simbolis yang dalam.",
+      "Tari Jawa klasik tidak mengikuti musik pop.",
+      "Gerak yang meniru binatang buas secara realistis bukan ciri tari klasik Jawa."
+    ]
+  },
+  {
+    q: "Tari Kipas Pakarena berasal dari daerah…",
+    opts: [
+      "Nusa Tenggara Timur",
+      "Sulawesi Selatan (Makassar/Gowa)",
+      "Maluku Utara",
+      "Sumatera Barat"
+    ],
+    ans: 1,
+    exp: [
+      "NTT memiliki tari-tari seperti Caci dan Likurai.",
+      "BENAR. Tari Pakarena adalah tari tradisional dari Sulawesi Selatan, khususnya Gowa, ditarikan oleh perempuan dengan gerakan lambat menggunakan properti kipas, melambangkan keanggunan dan tata krama perempuan Makassar.",
+      "Maluku Utara memiliki tari Soya-Soya dan Cakalele.",
+      "Sumatera Barat terkenal dengan Tari Piring dan Randai."
+    ]
+  },
+  {
+    q: "Perbedaan utama antara tari tradisi dan tari kreasi baru adalah…",
+    opts: [
+      "Tari tradisi menggunakan musik modern, tari kreasi menggunakan gamelan",
+      "Tari tradisi memiliki aturan baku yang ketat, tari kreasi memberi kebebasan berekspresi",
+      "Tari tradisi lebih mudah dipelajari daripada tari kreasi",
+      "Tari tradisi hanya untuk orang tua, tari kreasi untuk anak muda"
+    ],
+    ans: 1,
+    exp: [
+      "Sebaliknya, tari tradisi umumnya menggunakan musik tradisional.",
+      "BENAR. Tari tradisi terikat oleh pakem (aturan) yang ketat mencakup gerakan, kostum, dan iringan yang sudah baku turun-temurun. Tari kreasi baru memberi kebebasan koreografer untuk berinovasi.",
+      "Tingkat kesulitan tidak bisa digeneralisasi seperti itu.",
+      "Baik tradisi maupun kreasi bisa ditarikan semua usia."
+    ]
+  },
+  {
+    q: "Dalam tari Bali, 'agem' mengacu pada…",
+    opts: [
+      "Jenis iringan musik gamelan",
+      "Posisi dasar tubuh atau sikap tubuh pokok dalam tari Bali",
+      "Nama karakter jahat dalam pertunjukan",
+      "Kostum kepala penari"
+    ],
+    ans: 1,
+    exp: [
+      "Agem bukan istilah untuk musik gamelan.",
+      "BENAR. Agem adalah istilah dalam tari Bali untuk posisi dasar tubuh yang menjadi fondasi semua gerak tari Bali. Ada agem kanan dan agem kiri, dan semua gerak berpusat dari posisi dasar ini.",
+      "Karakter jahat dalam tari Bali lebih dikenal sebagai Rangda.",
+      "Hiasan kepala disebut gelung atau mahkota."
+    ]
+  },
+  {
+    q: "Tari Remo dari Jawa Timur biasanya dipertunjukkan sebagai…",
+    opts: [
+      "Tari penutup dalam upacara kematian",
+      "Tari penyambutan tamu kehormatan",
+      "Tari pemujaan dewa laut",
+      "Tari ritual panen padi"
+    ],
+    ans: 1,
+    exp: [
+      "Tari Remo bukan untuk upacara kematian.",
+      "BENAR. Tari Remo adalah tari penyambutan tamu kehormatan dari Jawa Timur, menggambarkan keberanian dan keperkasaan, sering membuka pertunjukan Ludruk.",
+      "Pemujaan dewa laut bukan tema Tari Remo.",
+      "Ritual panen lebih dikenal dalam konteks tari daerah lain."
+    ]
+  },
+  {
+    q: "Tari Gandrung dari Banyuwangi, Jawa Timur memiliki keunikan pada…",
+    opts: [
+      "Penarinya semua laki-laki berpakaian prajurit",
+      "Penarinya perempuan yang menari berpasangan dengan penonton laki-laki (paju)",
+      "Dilakukan di atas rakit di atas air",
+      "Menggunakan topeng raksasa seberat 10 kg"
+    ],
+    ans: 1,
+    exp: [
+      "Penari Gandrung adalah perempuan, bukan prajurit laki-laki.",
+      "BENAR. Keunikan Tari Gandrung adalah interaksi antara penari (perempuan) dengan penonton laki-laki yang diundang menari bersama disebut 'paju'. Tari ini melambangkan kegembiraan setelah panen.",
+      "Gandrung dilakukan di darat, bukan di atas air.",
+      "Topeng raksasa bukan ciri Tari Gandrung."
+    ]
+  },
+
+  // ─── 35-42: KARAKTER DAN CIRI TARI TRADISI NUSANTARA ───
+  {
+    q: "Karakter 'alus' (halus) dalam tari tradisi Jawa ditunjukkan melalui…",
+    opts: [
+      "Gerakan cepat, lompatan tinggi, dan suara lantang",
+      "Gerakan lambat, terkontrol, pandangan tertunduk, dan ekspresi tenang",
+      "Gerak bebas tanpa pola yang jelas",
+      "Penggunaan senjata dalam setiap adegan"
+    ],
+    ans: 1,
+    exp: [
+      "Gerakan cepat dan lantang adalah karakter 'kasar' atau gagah, bukan alus.",
+      "BENAR. Karakter alus dalam tari Jawa dicirikan oleh gerak yang lambat, sangat terkontrol, ekspresi wajah tenang, pandangan ke bawah atau lurus, dan setiap gerak tampak mengalir tanpa ketegangan.",
+      "Gerak bebas tanpa pola adalah ciri tari kontemporer, bukan tari klasik berkarakter alus.",
+      "Penggunaan senjata lebih identik dengan karakter gagah/kasar (bapang)."
+    ]
+  },
+  {
+    q: "Dalam seni tari Sunda, istilah 'gitek' merujuk pada…",
+    opts: [
+      "Jenis kostum mewah penari",
+      "Gerakan pinggul yang khas dan dinamis",
+      "Alat musik pengiring",
+      "Nama upacara sebelum pentas"
+    ],
+    ans: 1,
+    exp: [
+      "Gitek bukan istilah untuk kostum.",
+      "BENAR. Gitek adalah gerakan pinggul khas dalam tari Sunda (Jaipong) yang menjadi salah satu keunikan dan daya tarik tari ini. Gerakan ini dinamis dan menunjukkan ekspresi kebebasan.",
+      "Alat musik tidak disebut gitek.",
+      "Upacara sebelum pentas bukan disebut gitek."
+    ]
+  },
+  {
+    q: "Ciri khas yang membedakan tari tradisi Bali dari tari Jawa klasik adalah…",
+    opts: [
+      "Tari Bali tidak menggunakan musik pengiring",
+      "Tari Bali lebih dinamis dan ekspresif, dengan gerak mata (nelik) yang khas",
+      "Tari Jawa menggunakan kostum lebih warna-warni dari Bali",
+      "Tari Jawa memiliki gerakan yang lebih cepat dari Bali"
+    ],
+    ans: 1,
+    exp: [
+      "Tari Bali justru selalu diiringi gamelan Bali yang dinamis.",
+      "BENAR. Tari Bali cenderung lebih dinamis, ekspresif, dengan gerakan jari (nyeledet), mata (nelik), dan ekspresi wajah yang lebih intens dan bervariasi dibanding tari Jawa yang lebih halus dan introspekatif.",
+      "Kostum Bali juga sangat warna-warni dan khas.",
+      "Tari Jawa klasik justru lebih lambat dan terkontrol."
+    ]
+  },
+  {
+    q: "Karakter tokoh 'Arjuna' dalam wayang wong (tari drama Jawa) digambarkan dengan…",
+    opts: [
+      "Tubuh tegak, langkah besar, dan warna kostum merah",
+      "Gerak alus, postur anggun, warna kostum hitam-kuning, berkarakter ksatria bijaksana",
+      "Gerakan lucu, gerak akrobatik, dan kostum warna cerah",
+      "Gerakan kasar, tatapan melotot, dan kostum serba hitam"
+    ],
+    ans: 1,
+    exp: [
+      "Langkah besar dan kostum merah lebih cocok untuk tokoh gagah/kasar.",
+      "BENAR. Arjuna adalah tokoh ksatria alus dalam wayang wong, digambarkan dengan gerak halus, postur anggun, pandangan lembut, kostum yang khas, dan menggambarkan sifat bijaksana, halus budi pekerti.",
+      "Gerakan lucu dan akrobatik lebih cocok untuk tokoh punakawan.",
+      "Gerakan kasar dan serba hitam lebih cocok untuk tokoh jahat."
+    ]
+  },
+  {
+    q: "Tari tradisi Sumatera Barat (Minangkabau) secara umum memiliki ciri gerak yang terinspirasi dari…",
+    opts: [
+      "Gerakan gelombang laut selatan",
+      "Gerakan Pencak Silat Minang",
+      "Gerakan burung hantu",
+      "Gerakan petani mengolah sawah"
+    ],
+    ans: 1,
+    exp: [
+      "Gelombang laut bukan inspirasi utama tari Minang.",
+      "BENAR. Tari Minangkabau seperti Tari Piring, Randai, dan Indang banyak mengadopsi gerak-gerak dari Pencak Silat Minang, terlihat dari kuda-kuda yang kuat dan langkah kaki yang tegas.",
+      "Gerakan burung hantu bukan inspirasi khas tari Minang.",
+      "Gerak petani lebih dominan di daerah lain."
+    ]
+  },
+  {
+    q: "Tari dari daerah Aceh umumnya memiliki ciri…",
+    opts: [
+      "Penari bergerak sendiri-sendiri tanpa koordinasi",
+      "Gerakan serempak dan kompak dalam kelompok besar, sering disertai syair religi",
+      "Menggunakan instrumen elektrik modern",
+      "Seluruh penari menggunakan topeng"
+    ],
+    ans: 1,
+    exp: [
+      "Tari Aceh justru dikenal dengan kekompakan luar biasa.",
+      "BENAR. Tari Aceh seperti Saman, Ratoh Jaroe, dan Seudati ditandai dengan gerakan serempak yang sangat kompak oleh banyak penari, kecepatan perpindahan gerak yang tinggi, dan syair/zikir bernuansa islami.",
+      "Tari Aceh tradisional tidak menggunakan instrumen modern.",
+      "Tidak semua penari Aceh menggunakan topeng."
+    ]
+  },
+  {
+    q: "Apa yang dimaksud dengan 'pola lantai' dalam tari?",
+    opts: [
+      "Jenis lantai yang digunakan di studio tari",
+      "Formasi dan jalur yang dibuat penari di atas pentas",
+      "Desain dekorasi lantai panggung",
+      "Cara penari membersihkan lantai sebelum tampil"
+    ],
+    ans: 1,
+    exp: [
+      "Jenis lantai studio bukan pola lantai dalam tari.",
+      "BENAR. Pola lantai adalah desain atau formasi yang diciptakan oleh satu atau lebih penari melalui pergerakan mereka di atas pentas. Contoh: garis lurus, lingkaran, diagonal, zig-zag.",
+      "Dekorasi lantai adalah elemen set design, bukan pola lantai tari.",
+      "Membersihkan lantai bukan konsep dalam seni tari."
+    ]
+  },
+  {
+    q: "Manakah yang merupakan contoh tari tradisi dari Kalimantan?",
+    opts: [
+      "Tari Pendet",
+      "Tari Hudoq dari Dayak Kenyah",
+      "Tari Serimpi",
+      "Tari Maengket"
+    ],
+    ans: 1,
+    exp: [
+      "Tari Pendet berasal dari Bali.",
+      "BENAR. Tari Hudoq adalah tari ritual suku Dayak Kenyah dari Kalimantan Timur, dilakukan untuk memohon kesuburan panen dan menolak hama. Penari menggunakan topeng berbentuk binatang.",
+      "Tari Serimpi berasal dari Jawa (Yogyakarta).",
+      "Tari Maengket berasal dari Sulawesi Utara (Minahasa)."
+    ]
+  },
+
+  // ─── 43-50: PROSEDUR KARYA TARI ───
+  {
+    q: "Tahap pertama dalam proses penciptaan karya tari adalah…",
+    opts: [
+      "Menjahit kostum dan menyiapkan properti",
+      "Eksplorasi gerak sebagai proses pencarian ide dan materi",
+      "Mendaftarkan tari ke instansi pemerintah",
+      "Melakukan pertunjukan perdana di depan publik"
+    ],
+    ans: 1,
+    exp: [
+      "Kostum disiapkan setelah konsep tari sudah matang.",
+      "BENAR. Proses penciptaan tari dimulai dari eksplorasi: penari/koreografer mencari, mencoba, dan menemukan berbagai kemungkinan gerak yang sesuai dengan tema atau ide kreatif yang ingin disampaikan.",
+      "Pendaftaran dilakukan setelah karya selesai, bukan di awal.",
+      "Pertunjukan adalah tahap akhir setelah semua proses selesai."
+    ]
+  },
+  {
+    q: "Orang yang bertanggung jawab menciptakan dan mengatur gerak dalam sebuah karya tari disebut…",
+    opts: [
+      "Seniman",
+      "Koreografer",
+      "Direktur artistik",
+      "Impresario"
+    ],
+    ans: 1,
+    exp: [
+      "Seniman adalah istilah umum untuk semua pelaku seni.",
+      "BENAR. Koreografer adalah orang yang menciptakan, merancang, dan mengatur seluruh gerak dalam sebuah tari. Koreografer menentukan konsep, tema, pola lantai, dan rangkaian gerak.",
+      "Direktur artistik mengurus keseluruhan aspek artistik produksi, lebih luas dari koreografi.",
+      "Impresario adalah promotor/produser pertunjukan, bukan pencipta gerak."
+    ]
+  },
+  {
+    q: "Dalam proses garap tari, 'improvisasi' berfungsi untuk…",
+    opts: [
+      "Menghafalkan gerak yang sudah baku",
+      "Menemukan dan mengembangkan kemungkinan-kemungkinan gerak baru secara spontan",
+      "Menghafal urutan kostum yang digunakan",
+      "Mengatur pencahayaan panggung"
+    ],
+    ans: 1,
+    exp: [
+      "Menghafal gerak baku adalah bagian dari latihan teknik, bukan improvisasi.",
+      "BENAR. Improvisasi dalam tari adalah proses bergerak secara spontan untuk menemukan gerak-gerak baru yang tidak terencana. Ini adalah alat eksplorasi kreatif penting dalam proses penciptaan tari.",
+      "Kostum dan pencahayaan bukan bagian dari proses improvisasi gerak."
+    ]
+  },
+  {
+    q: "Elemen yang perlu dipertimbangkan koreografer dalam menyusun karya tari adalah, KECUALI…",
+    opts: [
+      "Tema dan konsep karya",
+      "Pola lantai dan komposisi",
+      "Harga tiket pertunjukan",
+      "Musik pengiring"
+    ],
+    ans: 2,
+    exp: [
+      "Tema dan konsep adalah fondasi karya tari.",
+      "Pola lantai dan komposisi adalah elemen artistik penting.",
+      "BENAR. Harga tiket adalah urusan manajemen dan produksi, BUKAN tanggung jawab koreografer dalam menyusun karya tari. Koreografer fokus pada aspek artistik: gerak, ruang, waktu, musik, dan tema.",
+      "Musik pengiring adalah unsur pendukung yang wajib dipertimbangkan."
+    ]
+  },
+  {
+    q: "Proses di mana penari menguasai dan menyempurnakan gerak tari melalui pengulangan terus-menerus disebut…",
+    opts: [
+      "Evaluasi",
+      "Eksplorasi",
+      "Latihan dan pemantapan teknis",
+      "Pentas perdana"
+    ],
+    ans: 2,
+    exp: [
+      "Evaluasi adalah penilaian setelah proses dilakukan.",
+      "Eksplorasi adalah pencarian gerak di awal proses kreatif.",
+      "BENAR. Latihan dan pemantapan teknis adalah tahap di mana penari mengulangi gerak berkali-kali hingga gerak menjadi hafal, halus, dan sempurna. Ini adalah proses yang paling panjang dalam persiapan pentas.",
+      "Pentas perdana adalah hasil akhir, bukan proses berlatih."
+    ]
+  },
+  {
+    q: "Apa yang dimaksud dengan 'komposisi tari'?",
+    opts: [
+      "Lagu yang mengiringi tari",
+      "Cara mengatur dan menyusun gerak, ruang, waktu, dan penari secara harmonis",
+      "Jumlah penari dalam satu kelompok",
+      "Biaya produksi sebuah pertunjukan tari"
+    ],
+    ans: 1,
+    exp: [
+      "Lagu adalah musik pengiring, bukan komposisi tari.",
+      "BENAR. Komposisi tari adalah ilmu dan seni menyusun atau mengorganisir semua elemen tari (gerak, ruang, waktu, tenaga, pola lantai, dinamika) menjadi satu kesatuan yang harmonis, indah, dan bermakna.",
+      "Jumlah penari hanya salah satu pertimbangan dalam komposisi.",
+      "Biaya produksi adalah urusan manajemen pertunjukan."
+    ]
+  },
+  {
+    q: "Pertunjukan tari yang menggabungkan unsur tari, musik, drama, dan kadang nyanyian dalam satu sajian disebut…",
+    opts: [
+      "Tari tunggal",
+      "Dramatari",
+      "Tari berpasangan",
+      "Tari modern"
+    ],
+    ans: 1,
+    exp: [
+      "Tari tunggal adalah tari yang dimainkan satu penari saja.",
+      "BENAR. Dramatari adalah bentuk pertunjukan seni terpadu yang menggabungkan tari, drama, musik, dan terkadang nyanyian. Contoh: Sendratari Ramayana, wayang wong.",
+      "Tari berpasangan hanya mengacu pada jumlah penari (dua orang).",
+      "Tari modern adalah genre tari berdasarkan aliran/gaya, bukan penggabungan unsur seni."
+    ]
+  },
+  {
+    q: "Dalam proses produksi tari, 'geladi resik' (dress rehearsal) dilakukan bertujuan untuk…",
+    opts: [
+      "Melatih penari pertama kali mengenal gerakan tari",
+      "Simulasi penuh pertunjukan dengan kostum, pencahayaan, dan musik untuk finalisasi",
+      "Menentukan siapa yang layak menjadi penari",
+      "Membeli peralatan yang belum tersedia"
+    ],
+    ans: 1,
+    exp: [
+      "Perkenalan gerak pertama kali dilakukan jauh sebelum geladi resik.",
+      "BENAR. Geladi resik adalah simulasi pertunjukan lengkap di venue asli menggunakan kostum, tata rias, pencahayaan, dan musik yang sesungguhnya, bertujuan menemukan dan memperbaiki masalah teknis sebelum pentas sebenarnya.",
+      "Seleksi penari dilakukan di awal, sebelum proses latihan.",
+      "Pembelian peralatan bukan tujuan geladi resik."
+    ]
+  }
+];
+
+// ─── State ───
+let answered = {};
+let submitted = false;
+
+// ─── Build Quiz ───
+function buildQuiz() {
+  const container = document.getElementById('questions-container');
+  container.innerHTML = '';
+  answered = {};
+  submitted = false;
+  updateScoreStrip();
+  updateProgress();
+
+  questions.forEach((q, qi) => {
+    const card = document.createElement('div');
+    card.className = 'q-card';
+    card.id = `qcard-${qi}`;
+
+    const letters = ['A','B','C','D'];
+    const optsHTML = q.opts.map((opt, oi) =>
+      `<div class="opt" id="opt-${qi}-${oi}" onclick="chooseAnswer(${qi},${oi})">
+        <span class="opt-letter">${letters[oi]}</span>
+        <span>${opt}</span>
+      </div>`
+    ).join('');
+
+    card.innerHTML = `
+      <div class="q-meta">
+        <span class="q-num">Soal ${qi+1}</span>
+        <span class="q-badge" id="badge-${qi}"></span>
+      </div>
+      <div class="q-text">${q.q}</div>
+      <div class="options">${optsHTML}</div>
+      <div class="explanation" id="exp-${qi}"></div>
+    `;
+    container.appendChild(card);
+  });
+
+  document.getElementById('result-panel').style.display = 'none';
+  document.getElementById('submit-btn').disabled = false;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function chooseAnswer(qi, oi) {
+  if (submitted) return;
+  if (answered[qi] !== undefined) return; // already answered
+
+  answered[qi] = oi;
+  const q = questions[qi];
+  const isCorrect = oi === q.ans;
+
+  // style card
+  const card = document.getElementById(`qcard-${qi}`);
+  card.classList.add(isCorrect ? 'answered-correct' : 'answered-wrong');
+
+  // style options
+  const letters = ['A','B','C','D'];
+  q.opts.forEach((_, i) => {
+    const el = document.getElementById(`opt-${qi}-${i}`);
+    el.classList.add('disabled');
+    if (i === q.ans) el.classList.add('correct');
+    else if (i === oi && !isCorrect) el.classList.add('wrong');
+    else el.classList.add('neutral');
+  });
+
+  // badge
+  const badge = document.getElementById(`badge-${qi}`);
+  badge.textContent = isCorrect ? '✓ Benar' : '✗ Salah';
+  badge.className = `q-badge ${isCorrect ? 'badge-correct' : 'badge-wrong'}`;
+
+  // show explanation
+  showExplanation(qi, isCorrect);
+
+  updateScoreStrip();
+  updateProgress();
+  updateAnsweredCount();
+}
+
+function showExplanation(qi, isCorrect) {
+  const q = questions[qi];
+  const el = document.getElementById(`exp-${qi}`);
+  const letters = ['A','B','C','D'];
+  const headerCls = isCorrect ? 'exp-correct-h' : 'exp-wrong-h';
+  const headerText = isCorrect
+    ? '✓ Jawaban kamu BENAR! Berikut penjelasan tiap pilihan:'
+    : `✗ Jawaban kamu kurang tepat. Jawaban benar: ${letters[q.ans]}. Berikut penjelasan:`;
+
+  const expOpts = q.opts.map((opt, i) => {
+    const cls = i === q.ans ? 'exp-opt-correct' : 'exp-opt-wrong';
+    return `<div class="exp-opt ${cls}"><strong>${letters[i]}. ${opt}</strong><br>${q.exp[i]}</div>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div class="exp-header ${headerCls}">${headerText}</div>
+    <div class="exp-body">
+      <div class="exp-options">${expOpts}</div>
+    </div>
+  `;
+  el.style.display = 'block';
+}
+
+function updateScoreStrip() {
+  const total = Object.keys(answered).length;
+  const benar = Object.entries(answered).filter(([qi,oi]) => questions[qi].ans === oi).length;
+  const salah = total - benar;
+  document.getElementById('cnt-benar').textContent = `Benar: ${benar}`;
+  document.getElementById('cnt-salah').textContent = `Salah: ${salah}`;
+  document.getElementById('cnt-total').textContent = `Dijawab: ${total}/50`;
+}
+
+function updateProgress() {
+  const pct = (Object.keys(answered).length / questions.length) * 100;
+  document.getElementById('prog-bar').style.width = pct + '%';
+}
+
+function updateAnsweredCount() {
+  const n = Object.keys(answered).length;
+  document.getElementById('answered-count').textContent = `${n} dari 50 soal dijawab`;
+}
+
+function submitQuiz() {
+  if (submitted) return;
+  const total = Object.keys(answered).length;
+  if (total < questions.length) {
+    const remaining = questions.length - total;
+    if (!confirm(`Masih ada ${remaining} soal yang belum dijawab. Yakin mau kumpulkan sekarang?`)) return;
+  }
+  submitted = true;
+  document.getElementById('submit-btn').disabled = true;
+
+  // Reveal unanswered
+  questions.forEach((q, qi) => {
+    if (answered[qi] === undefined) {
+      const card = document.getElementById(`qcard-${qi}`);
+      card.classList.add('answered-wrong');
+      const badge = document.getElementById(`badge-${qi}`);
+      badge.textContent = '— Tidak Dijawab';
+      badge.className = 'q-badge badge-wrong';
+      q.opts.forEach((_, i) => {
+        const el = document.getElementById(`opt-${qi}-${i}`);
+        el.classList.add('disabled');
+        if (i === q.ans) el.classList.add('correct');
+        else el.classList.add('neutral');
+      });
+      showExplanation(qi, false);
+    }
+  });
+
+  const benar = Object.entries(answered).filter(([qi,oi]) => questions[qi].ans === oi).length;
+  const nilai = Math.round((benar / questions.length) * 100);
+
+  const panel = document.getElementById('result-panel');
+  const bigScore = document.getElementById('big-score');
+  const gradeLabel = document.getElementById('grade-label');
+  const resultDesc = document.getElementById('result-desc');
+
+  let grade, gradeClass, desc;
+  if (nilai >= 90) {
+    grade = 'A – Istimewa 🏆'; gradeClass = 'grade-A';
+    desc = 'Luar biasa! Kamu sudah sangat siap untuk ulangan besok. Pertahankan semangat belajarmu!';
+  } else if (nilai >= 75) {
+    grade = 'B – Baik 👍'; gradeClass = 'grade-B';
+    desc = 'Bagus sekali! Ulangi kembali materi yang masih salah untuk memastikan nilaimu sempurna besok.';
+  } else if (nilai >= 60) {
+    grade = 'C – Cukup 📚'; gradeClass = 'grade-C';
+    desc = 'Lumayan! Tapi masih perlu belajar lebih giat. Fokus pada soal-soal yang kamu jawab salah tadi.';
+  } else {
+    grade = 'D – Perlu Belajar Lagi 💪'; gradeClass = 'grade-D';
+    desc = 'Jangan menyerah! Baca kembali penjelasan di setiap soal dan minta bantuan guru. Semangat!';
+  }
+
+  bigScore.textContent = nilai;
+  bigScore.className = `big-score ${gradeClass}`;
+  gradeLabel.textContent = grade;
+  gradeLabel.className = gradeClass;
+  resultDesc.innerHTML = `Kamu menjawab <strong>${benar} benar</strong> dari ${questions.length} soal.<br>${desc}`;
+
+  panel.style.display = 'block';
+  panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function retryQuiz() {
+  buildQuiz();
+  updateAnsweredCount();
+}
+
+// ─── Scroll to top button ───
+window.addEventListener('scroll', () => {
+  const btn = document.getElementById('top-btn');
+  if (window.scrollY > 400) btn.classList.add('show');
+  else btn.classList.remove('show');
+});
+
+// ─── Init ───
+buildQuiz();
+updateAnsweredCount();
+</script>
+</body>
+</html>
