@@ -1523,6 +1523,57 @@ function closeEval() {
   panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
+function playSound(isCorrect) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+    if (isCorrect) {
+      // 🎵 Ding-ding naik — nada gembira
+      const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
+      notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.12);
+        gain.gain.setValueAtTime(0, ctx.currentTime + i * 0.12);
+        gain.gain.linearRampToValueAtTime(0.35, ctx.currentTime + i * 0.12 + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.12 + 0.35);
+        osc.start(ctx.currentTime + i * 0.12);
+        osc.stop(ctx.currentTime + i * 0.12 + 0.35);
+      });
+    } else {
+      // 🔔 Bzzzt turun — nada salah
+      const notes = [311.13, 233.08]; // Eb4, Bb3
+      notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const distortion = ctx.createWaveShaper();
+        // slight buzz
+        const curve = new Float32Array(256);
+        for (let j = 0; j < 256; j++) {
+          const x = (j * 2) / 256 - 1;
+          curve[j] = (Math.PI + 80) * x / (Math.PI + 80 * Math.abs(x));
+        }
+        distortion.curve = curve;
+        osc.connect(distortion);
+        distortion.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.18);
+        gain.gain.setValueAtTime(0, ctx.currentTime + i * 0.18);
+        gain.gain.linearRampToValueAtTime(0.25, ctx.currentTime + i * 0.18 + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.18 + 0.28);
+        osc.start(ctx.currentTime + i * 0.18);
+        osc.stop(ctx.currentTime + i * 0.18 + 0.28);
+      });
+    }
+  } catch(e) {
+    // Audio tidak tersedia, lanjut saja
+  }
+}
+
 function startQuiz() {
   const s = document.getElementById('splash');
   s.classList.add('hide');
@@ -1600,6 +1651,7 @@ function chooseAnswer(qi, oi) {
   badge.className = `q-badge ${isCorrect ? 'badge-correct' : 'badge-wrong'}`;
 
   // show explanation
+  playSound(isCorrect);
   showExplanation(qi, isCorrect);
 
   updateScoreStrip();
